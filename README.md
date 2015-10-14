@@ -22,5 +22,4 @@ in the form of `title`|`args`|`result`
 
 ## TODO
 
-* Provide examples in languages other than JS/Node.js runtime
 * test process inspector and kill faulty processes
