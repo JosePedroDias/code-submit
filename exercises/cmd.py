@@ -1,0 +1,1 @@
+/usr/bin/python {{SRC_FILE}}

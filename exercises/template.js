@@ -1,6 +1,6 @@
 {{SOLUTION}}
 
-var inputS = '{{INPUT}}';;
+var inputS = '{{INPUT}}';
 var expectedS = '{{OUTPUT}}';
 var expected  = JSON.parse(expectedS);
 

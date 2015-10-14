@@ -40,11 +40,14 @@ module.exports = function(cfg) {
         return result;
     };
 
-    let codeTpl = rf('exercises/template.js');
-    let cmdTpl  = rf('exercises/cmd.js');
 
-    let run = function(exDir, solutionFn, inputS, outputS) {
+
+    let run = function(exDir, runtime, solutionFn, inputS, outputS) {
+        let codeTpl = rf('exercises/template.' + runtime);
+        let cmdTpl  = rf('exercises/cmd.' + runtime);
+    
         let solutionS = rf(solutionFn);
+        
         
         let codeToRun = codeTpl
         .replace('{{SOLUTION}}', solutionS)
@@ -55,23 +58,27 @@ module.exports = function(cfg) {
         /*console.log('\n** CODE **');
         console.log(codeToRun);*/
         
-        let fileToRun = [cfg.tmpDir, rndBase32(), '.js'].join('');
-        wf(fileToRun, codeToRun);
-        
-        let nodeBinaryFn = '/usr/local/bin/node';
+        let baseFN = rndBase32();
+        let srcFile = [cfg.tmpDir, baseFN, '.' + runtime].join('');
+        let exeFile = [cfg.tmpDir, baseFN].join('');
+        wf(srcFile, codeToRun);
         
         let cmd = cmdTpl
-        .replace('{{SRC_FILE}}', fileToRun);
+        .replace('{{SRC_FILE}}', srcFile)
+        .replace('{{EXE_FILE}}', exeFile)
+        .replace('{{EXE_FILE}}', exeFile);
         
         console.log('\nabout to run:');
         console.log(cmd);
         
         let out = [];
         let err = [];
-        let args = cmd.split(' ');
-        let executable = args.shift();
-        let proc = cp.spawn(executable, args);
         
+        //let args = cmd.split(' ');
+        //let executable = args.shift();
+        
+        //let proc = cp.spawn(executable, args);
+        let proc = cp.exec(cmd);
         
         
         var onInsp = function() {
