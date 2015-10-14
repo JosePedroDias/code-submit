@@ -32,7 +32,28 @@ http.createServer(function(req, res) {
     req.on('data', function(data) {
         code += data;
     });
+    
+    
+    
+    
     req.on('end', function() {
+        code = code.trim();
+        
+        res.setHeader('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Content-Type', 'application/json');
+    
+        if (
+            (code.length === 0) ||
+            !('exercise' in q) ||
+            !('runtime' in q) ||
+            !('args' in q) ||
+            !('expectedResult' in q)
+        ) {
+        res.end( '"Expected POST with code in the body and query string arguments exercise, runtime, args and expectedResults"' )
+            return;
+        }
+    
         cs.run({
             code           : code,
             exercise       : q.exercise,
@@ -40,10 +61,6 @@ http.createServer(function(req, res) {
             args           : q.args,
             expectedResult : q.expectedResult,
             onCompletion: function(err, out) {
-                res.setHeader('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                res.setHeader('Content-Type', 'application/json');
-                
                 var o = {
                     err : err,
                     out : out
