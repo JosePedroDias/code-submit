@@ -11,7 +11,7 @@ This is the backend.
 * supports the following languages:
    * javascript/node.js
    * python
-   * C
+   * C (needs love!)
 
 
 ## Current exercise structure
@@ -20,20 +20,19 @@ This is the backend.
 The former one defines where the several parts expand to a source file,
 the latter lists the command to compile and run the source file.
 * Each exercise has a `text.md` with its definition and a series of `expectedResults`,
-in the form of `title`|`args`|`result`
+in the form of `title`\n`args`\n`result`
 * The template assumes three sections that will get filled:
     * `{{SOLUTION}}` - a function named solution, provided by the "user"
     * `{{INPUT}}`    - the arguments to invoke the solution with
     * `{{OUTPUT}}`   - the expected result.
-    if the function does not return this value,
+    if the function does not return the expected value,
     an exception will be thrown and text sent to STDERR,
     signalling test failure.
 
 
 ## TODO
 
-* support for strings and arrays as arguments and results
-* improve comparison of result with expectedResult (specially in C!)
+* C support for printing and asserting, at least for ints, floats and char/int*?
 * support for other languages: java, go, lisp, clojure?
 * test process inspector and kill faulty processes (taking too long, using too much memory)
 * create simple page to serve an editor and submit solutions to it
