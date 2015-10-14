@@ -9,12 +9,26 @@ let cs = require('./index')({
     inspectionInterval :   100
 });
 
-//let rt = 'js';
-//let rt = 'c';
-let rt = 'py';
-
 let sample = cs.processIO('exercises/ex1/expectedResults')[1];
+let _title          = sample[0];
+let _args           = sample[1];
+let _expectedResult = sample[2];
 
-console.log('test name: ' + sample[0]);
-cs.run('ex1', rt, 'exercises/ex1/solution.' + rt, sample[1], sample[2]); // OK
-//cs.run('ex1', rt, 'exercises/ex1/solution2.' + rt, sample[1], sample[2]); // FAILS
+let rt = 'py';
+let code = cs.rf('exercises/ex1/solution.' + rt);
+
+console.log('test name: ' + _title);
+
+cs.run({
+    exercise       : 'ex1',
+    runtime        : rt,
+    code           : code,
+    args           : _args,
+    expectedResult : _expectedResult,
+    onCompletion: function(err, out) {
+        if (err) {
+            return console.error('\n** ERR **\n' + err);
+        }
+        return console.log('\n** OUT **\n' + out);
+    }
+});

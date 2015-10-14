@@ -42,24 +42,24 @@ module.exports = function(cfg) {
 
 
 
-    let run = function(exDir, runtime, solutionFn, inputS, outputS) {
-        let codeTpl = rf('exercises/template.' + runtime);
-        let cmdTpl  = rf('exercises/cmd.' + runtime);
-    
-        let solutionS = rf(solutionFn);
+    let run = function(opts) {
+        let rt = opts.runtime;
+        
+        let codeTpl = rf('exercises/template.' + rt);
+        let cmdTpl  = rf('exercises/cmd.' + rt);
         
         
         let codeToRun = codeTpl
-        .replace('{{SOLUTION}}', solutionS)
-        .replace('{{INPUT}}',    inputS)
-        .replace('{{INPUT}}',    inputS)
-        .replace('{{OUTPUT}}',   outputS);
+        .replace('{{SOLUTION}}', opts.code)
+        .replace('{{INPUT}}',    opts.args)
+        .replace('{{INPUT}}',    opts.args)
+        .replace('{{OUTPUT}}',   opts.expectedResult);
         
         /*console.log('\n** CODE **');
         console.log(codeToRun);*/
         
         let baseFN = rndBase32();
-        let srcFile = [cfg.tmpDir, baseFN, '.' + runtime].join('');
+        let srcFile = [cfg.tmpDir, baseFN, '.' + rt].join('');
         let exeFile = [cfg.tmpDir, baseFN].join('');
         wf(srcFile, codeToRun);
         
@@ -93,9 +93,18 @@ module.exports = function(cfg) {
         
         var inspTimer = setInterval(onInsp, cfg.inspectionInterval);
         
+        var onDone = function(err2) {
+            clearInterval(inspTimer);
+            
+            out = out.join('').trim();
+            err = err.join('').trim();
+            
+            opts.onCompletion(err2 || err, out);
+        };
         
         
-        console.log('\nPID: ' + proc.pid);
+        
+        //console.log('\nPID: ' + proc.pid);
         
         proc.stdout.on('data', function(data) {
             out.push(data.toString());
@@ -104,31 +113,10 @@ module.exports = function(cfg) {
             err.push(data.toString());
         });
         proc.on('error', function(err) {
-            clearInterval(inspTimer);
-        
-            console.log('ERROR', err);
+            onDone(err);
         });
         proc.on('close', function(code) {
-            clearInterval(inspTimer);
-            
-            console.log('\nRETURN CODE: ' + code);
-            
-            //if (code !=== 0) {
-                // TODO
-            //}
-            
-            out = out.join('').trim();
-            err = err.join('').trim();
-            
-            if (out) {
-                console.log('\n** OUT: **');
-                console.log( out );
-            }
-
-            if (err) {
-                console.log('\n** ERR: **');
-                console.log( err );
-            }
+            onDone();
         });
     };
     
@@ -136,6 +124,7 @@ module.exports = function(cfg) {
     
     return {
         processIO : processIO,
+        rf        : rf,
         run       : run
     };
 };
