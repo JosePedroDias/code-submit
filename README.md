@@ -33,7 +33,7 @@ in the form of `title`|`args`|`result`
 ## TODO
 
 * support for strings and arrays as arguments and results
-* C support isn't checking correctness just yet
+* improve comparison of result with expectedResult (specially in C!)
 * support for other languages: java, go, lisp, clojure?
 * test process inspector and kill faulty processes (taking too long, using too much memory)
 * create simple page to serve an editor and submit solutions to it
