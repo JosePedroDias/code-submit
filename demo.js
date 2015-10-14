@@ -9,18 +9,18 @@ let cs = require('./index')({
     inspectionInterval :   100
 });
 
-let sample = cs.processIO('exercises/ex1/expectedResults')[1];
+let sample = cs.processIO('exercises/ex2/expectedResults')[1];
 let _title          = sample[0];
 let _args           = sample[1];
 let _expectedResult = sample[2];
 
-let rt = 'py';
-let code = cs.rf('exercises/ex1/solution.' + rt);
+let rt = 'js';
+let code = cs.rf('exercises/ex2/solution.' + rt);
 
 console.log('test name: ' + _title);
 
 cs.run({
-    exercise       : 'ex1',
+    exercise       : 'ex2',
     runtime        : rt,
     code           : code,
     args           : _args,

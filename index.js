@@ -45,18 +45,16 @@ module.exports = function(cfg) {
     let run = function(opts) {
         let rt = opts.runtime;
         
-        let codeTpl = rf('exercises/template.' + rt);
-        let cmdTpl  = rf('exercises/cmd.' + rt);
+        let codeTpl = rf('runtimes/' + rt + '/template.' + rt);
+        let cmdTpl  = rf('runtimes/' + rt + '/cmd');
         
         
         let codeToRun = codeTpl
         .replace('{{SOLUTION}}', opts.code)
         .replace('{{INPUT}}',    opts.args)
         .replace('{{INPUT}}',    opts.args)
+        .replace('{{OUTPUT}}',   opts.expectedResult)
         .replace('{{OUTPUT}}',   opts.expectedResult);
-        
-        /*console.log('\n** CODE **');
-        console.log(codeToRun);*/
         
         let baseFN = rndBase32();
         let srcFile = [cfg.tmpDir, baseFN, '.' + rt].join('');
@@ -68,8 +66,8 @@ module.exports = function(cfg) {
         .replace('{{EXE_FILE}}', exeFile)
         .replace('{{EXE_FILE}}', exeFile);
         
-        console.log('\nabout to run:');
-        console.log(cmd);
+        /*console.log('\nabout to run:');
+        console.log(cmd);*/
         
         let out = [];
         let err = [];
