@@ -10,12 +10,14 @@ let cs = require('./index')({
     inspectionInterval :   100
 });
 
-cs.run({
-    //runtime        : 'js',
-    //code           : 'function solution(a, b) { return a + b; }',
+// those sleeps are there to test process killing, something which isn't working
 
-    runtime        : 'py',
-    code           : 'import time\ndef solution(a, b): time.sleep(20); return a + b',
+cs.run({
+    runtime        : 'js',
+    code           : 'function solution(a, b) { return a + b; }',
+
+    //runtime        : 'py',
+    //code           : 'import time\ndef solution(a, b): time.sleep(20); return a + b',
 
     //runtime        : 'c',
     //code           : 'int solution(int a, int b) { sleep(2); return a + b; }',

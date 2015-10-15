@@ -82,8 +82,10 @@
         </div>
 
         <script>
-            var SERVER = 'http://127.0.0.1:6662';
-            //var SERVER = 'http://stage.sl.pt:6662';
+            //var SERVER = 'http://127.0.0.1:6662';
+            var SERVER = 'http://stage.sl.pt:6662';
+
+
 
             var ajax = function(o) {
                 var xhr = new XMLHttpRequest();
@@ -101,6 +103,10 @@
 
             var QS = function(sel) { return document.querySelector(sel); };
 
+
+
+            var codes = {}; // to backup values locally on runtime change
+
             var problemEl = QS('#problem');
             var runtimeEl = QS('#runtime');
             var codeEl = QS('#code');
@@ -108,6 +114,15 @@
             var expectedResultEl = QS('#expected-result');
             var runEl = QS('#run');
             var feedbackEl = QS('#feedback');
+
+
+
+            var renderer = window.commonmark.HtmlRenderer();
+            var parser = window.commonmark.Parser();
+
+            new Behave({textarea:codeEl});
+
+
 
             var lockUI = function(st) {
                 runtimeEl.disabled = st;
@@ -122,7 +137,9 @@
                 feedbackEl.className = (isError ? 'error' : '');
             };
 
-            runEl.addEventListener('click', function() {
+
+
+            runEl.addEventListener('click', function() { // request the code to be run remotely
                 lockUI(true);
                 var runtime = runtimeEl.value;
                 var code = codeEl.value;
@@ -145,21 +162,33 @@
                 updateFeedback('running...');
             });
 
-            new Behave({
-                textarea: codeEl
+
+
+            runtimeEl.addEventListener('focus', function() { // backup code editor content
+                codes[runtimeEl.value] = codeEl.value;
             });
 
-            var renderer = window.commonmark.HtmlRenderer();
-            var parser = window.commonmark.Parser();
 
-            if (location.hash) {
+
+            runtimeEl.addEventListener('change', function() { // restore code editor content
+                codeEl.value = codes[ runtimeEl.value ] || '';
+            });
+
+
+
+            if (location.hash) { // if hash is set, get exercise data from gist at url http://gist.github.com/<ID>
                 var hash = location.hash.substring(1);
 
                 window.onGist = function(o) {
                     var files = o.data.files;
                     var text = files['text.md'].content;
                     var results = files['expectedResults'].content.split('\n');
-                    var code = files['skeleton.js'].content;
+
+                    for (var k in files) {
+                        if (k.indexOf('skeleton.') !== 0) { continue; }
+                        codes[ k.split('.')[1] ] = files[k].content;
+                    }
+                    var code = codes[ runtimeEl.value ];
 
                     codeEl.value = code;
                     argsEl.value = results[1];
@@ -168,7 +197,7 @@
                     problemEl.className = '';
                 };
 
-                var scriptEl = document.createElement('script');
+                var scriptEl = document.createElement('script'); // request gist via JSONP
                 scriptEl.setAttribute('type', 'text/javascript');
                 scriptEl.setAttribute('src', '//api.github.com/gists/' + hash +'?callback=onGist'); // 72bd1a23988fe753dbfd
                 document.head.appendChild(scriptEl);
