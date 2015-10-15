@@ -13,7 +13,7 @@ just visit the webpage using the gist ID as hash like [this](http://rawgit.com/J
 * supports the following languages:
    * javascript/node.js
    * python
-   * C (needs love, crippled!)
+   * C (in C the solution returning type is assumed to be int)
 
 
 ## runtime definition
@@ -32,6 +32,6 @@ the latter lists the command to compile and run the source file.
 
 ## TODO
 
-* C support for printing and asserting, at least for ints, floats and char/int*?
-* support for other languages: java, go, lisp, ruby, clojure?
-* test process inspector and kill faulty processes (taking too long, using too much memory)
+* support for other languages: java, go, lisp, ruby, clojure (I accept pull requests!)
+* kill faulty processes
+    * can't kill ongoing process (pid not found, did it fork already and how do I know who to kill then?)

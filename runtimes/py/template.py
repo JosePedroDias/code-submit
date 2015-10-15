@@ -17,4 +17,5 @@ try:
     else:
         print "solution(%s) => %s     OK!" % (inputS, resultS)
 except BaseException as err:
-    sys.stderr.writeln(err)
+    sys.stderr.write(err)
+    sys.stderr.write("\n")

@@ -1,23 +1,20 @@
 #include <stdio.h>
 
-
 {{SOLUTION}}
 
 char* inputS = "{{INPUT}}";
+int expected = {{OUTPUT}};
 char* expectedS = "{{OUTPUT}}";
 
 int main() {
-    auto result  = solution({{INPUT}});
+    auto result = solution({{INPUT}});
 
-    printf("RESULT: %d", result);
+    if (result != expected) {
+        fprintf(stderr, "solution(%s) => %d     Expected: %s\n", inputS, result, expectedS);
+    }
+    else {
+        printf("solution(%s) => %d     OK!\n", inputS, result);
+    }
     
     return 0;
 }
-
-
-/*if (resultS !== expectedS) {
-    throw ['solution(', inputS, ') => ', resultS, '     Expected: ', expectedS].join('');
-}
-else {
-    console.log( ['solution(', inputS, ') => ', resultS, '     OK!'].join('') );
-}*/

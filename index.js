@@ -6,7 +6,7 @@ module.exports = function(cfg) {
 
     let fs = require('fs');
     let cp = require('child_process');
-    let insp = require('proc-process-inspector');
+    //let insp = require('proc-process-inspector'); // TODO reenable once in use
 
 
 
@@ -30,7 +30,6 @@ module.exports = function(cfg) {
         let codeTpl = rf('runtimes/' + rt + '/template.' + rt);
         let cmdTpl  = rf('runtimes/' + rt + '/cmd');
         
-        
         let codeToRun = codeTpl
         .replace('{{SOLUTION}}', opts.code)
         .replace('{{INPUT}}',    opts.args)
@@ -48,32 +47,40 @@ module.exports = function(cfg) {
         .replace('{{EXE_FILE}}', exeFile)
         .replace('{{EXE_FILE}}', exeFile);
         
-        /*console.log('\nabout to run:');
-        console.log(cmd);*/
-        
         let out = [];
         let err = [];
-        
-        //let args = cmd.split(' ');
-        //let executable = args.shift();
-        
-        //let proc = cp.spawn(executable, args);
+
         let proc = cp.exec(cmd);
+        let t0 = new Date().valueOf();
+
+        let kill = function() { // TODO FIX
+            //console.log('killing him!');
+            //proc.kill('SIGHUP'); // SIGHUP, SIGKILL...
+            //onDone('timeout');
+        };
         
-        
-        var onInsp = function() {
-            insp.getMemory(proc.pid, function(err, out) {
-                console.log(err, out);
-            });            
-            insp.getCPU(proc.pid, function(err, out) {
+        let onInsp = function() {
+            /*insp.getMemory(proc.pid, function(err, out) {
                 console.log(err, out);
             });
+
+            insp.getCPU(proc.pid, function(err, out) {
+                console.log(err, out);
+            });*/
+
+            let t = new Date().valueOf();
+            let dt = t - t0;
+            console.log('pid:%s, duration:%d ms', proc.pid, dt);
+
+            if (dt > cfg.maxDuration) {
+                kill();
+            }
         };
         onInsp();
-        
-        var inspTimer = setInterval(onInsp, cfg.inspectionInterval);
-        
-        var onDone = function(err2) {
+
+        let inspTimer = setInterval(onInsp, cfg.inspectionInterval);
+
+        let onDone = function(err2) {
             clearInterval(inspTimer);
             
             out = out.join('').trim();

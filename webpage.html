@@ -62,8 +62,9 @@
         <div id="interface">
             <label for="runtime">runtime:</label>
             <select id="runtime">
-                <option value="js">javascript</option>
-                <option value="py">python</option>
+                <option value="js">JavaScript</option>
+                <option value="py">Python</option>
+                <option value="c">C</option>
             </select><br/>
 
             <label for="code">code:</label>
@@ -81,7 +82,8 @@
         </div>
 
         <script>
-            var SERVER = 'http://stage.sl.pt:6662';
+            var SERVER = 'http://127.0.0.1:6662';
+            //var SERVER = 'http://stage.sl.pt:6662';
 
             var ajax = function(o) {
                 var xhr = new XMLHttpRequest();
