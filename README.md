@@ -1,6 +1,6 @@
 # code-submit
 
-After experimenting [codility](https://codility.com/) I thought it would be interesting to replicate the idea.
+After experimenting [codility.com](https://codility.com/) I thought it would be interesting to replicate the idea.
 
 
 ## Features
@@ -8,8 +8,8 @@ After experimenting [codility](https://codility.com/) I thought it would be inte
 * can be invoked locally (check `demo.js`)
 * can be invoked remotely via a simple HTTP POST request (check `server.js` and `server-tests/ok.sh`)
 * can be used as a web app (serve `webpage.html`, editing the `SERVER` variable to a server instance you run)
-* you can host your own problems on public gists like [this one](https://gist.github.com/JosePedroDias/d4c77023c1149a17bf07).
-just visit the webpage using the gist ID as hash like [this](http://rawgit.com/JosePedroDias/code-submit/master/webpage.html#d4c77023c1149a17bf07).
+* you can host your own problems on public gists like [this one](https://gist.github.com/JosePedroDias/dc913375fe8af2cadf75).
+just visit the webpage using the gist ID as hash like [this](http://rawgit.com/JosePedroDias/code-submit/master/webpage.html#dc913375fe8af2cadf75).
 * supports the following languages:
    * javascript/node.js
    * python
