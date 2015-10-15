@@ -7,7 +7,7 @@ After experimenting [codility](https://codility.com/) I thought it would be inte
 
 * can be invoked locally (check `demo.js`)
 * can be invoked remotely via a simple HTTP POST request (check `server.js` and `server-tests/ok.sh`)
-* can be used as a web app (gotta run both the `server.js` and `webserver.js`)
+* can be used as a web app (gotta run both the `server.js` and `webserver.js`, then visit <http://127.0.0.1:6663/#equi>)
 * supports the following languages:
    * javascript/node.js
    * python
