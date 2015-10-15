@@ -52,6 +52,8 @@
     </head>
 
     <body>
+        <h1>code-submit</h1>
+
         <div>
             <button onclick="document.querySelector('#problem').classList.toggle('hidden')">toggle problem text</button>
             <div id="problem" class="hidden"></div>
@@ -79,6 +81,8 @@
         </div>
 
         <script>
+            var SERVER = 'http://stage.sl.pt:6662';
+
             var ajax = function(o) {
                 var xhr = new XMLHttpRequest();
                 xhr.open(o.verb || 'GET', o.uri, true);
@@ -123,7 +127,7 @@
                 var args = argsEl.value;
                 var expectedResult = expectedResultEl.value;
                 ajax({
-                    uri : ['//', location.hostname, ':6662',
+                    uri : [SERVER,
                             '?runtime=',        encodeURIComponent(runtime),
                             '&args=',           encodeURIComponent(args),
                             '&expectedResult=', encodeURIComponent(expectedResult),
@@ -131,9 +135,9 @@
                     verb: 'POST',
                     payload: code,
                     cb: function(err, o) {
+                        lockUI(false);
                         if (err) { return window.alert(err); }
                         updateFeedback(o.err || o.out, !!o.err);
-                        lockUI(false);
                     }
                 });
                 updateFeedback('running...');
@@ -147,19 +151,25 @@
             var parser = window.commonmark.Parser();
 
             if (location.hash) {
-                var problemName = location.hash.substring(1);
-                document.title = problemName;
-                ajax({
-                    uri: '/' + problemName,
-                    cb: function(err, o) {
-                        if (err) { return window.alert(err); }
-                        var results = o.expectedResults.split('\n');
-                        argsEl.value = results[1];
-                        expectedResultEl.value = results[2];
-                        problemEl.innerHTML = renderer.render( parser.parse(o.text) );
-                        problemEl.className = '';
-                    }
-                });
+                var hash = location.hash.substring(1);
+
+                window.onGist = function(o) {
+                    var files = o.data.files;
+                    var text = files['text.md'].content;
+                    var results = files['expectedResults'].content.split('\n');
+                    var code = files['skeleton.js'].content;
+
+                    codeEl.value = code;
+                    argsEl.value = results[1];
+                    expectedResultEl.value = results[2];
+                    problemEl.innerHTML = renderer.render( parser.parse(text) );
+                    problemEl.className = '';
+                };
+
+                var scriptEl = document.createElement('script');
+                scriptEl.setAttribute('type', 'text/javascript');
+                scriptEl.setAttribute('src', '//api.github.com/gists/' + hash +'?callback=onGist'); // 72bd1a23988fe753dbfd
+                document.head.appendChild(scriptEl);
             }
             else {
                 problemEl.parentNode.className = 'hidden';
