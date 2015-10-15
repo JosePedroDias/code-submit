@@ -1,17 +1,17 @@
 # code-submit
 
-After experimenting codility I thought it would be interesting to replicate the idea.
-This is the backend.
+After experimenting [codility](https://codility.com/) I thought it would be interesting to replicate the idea.
+
 
 ## Features
 
 * can be invoked locally (check `demo.js`)
-* can be invoked remotely via a simple HTTP POST request (check `server-tests/ok.sh`)
-* assumes arguments and result as primitve numbers (strings and arrays would be nice)
+* can be invoked remotely via a simple HTTP POST request (check `server.js` and `server-tests/ok.sh`)
+* can be used as a web app (gotta run both the `server.js` and `webserver.js`)
 * supports the following languages:
    * javascript/node.js
    * python
-   * C (needs love!)
+   * C (needs love, crippled!)
 
 
 ## Current exercise structure
@@ -33,6 +33,6 @@ in the form of `title`\n`args`\n`result`
 ## TODO
 
 * C support for printing and asserting, at least for ints, floats and char/int*?
-* support for other languages: java, go, lisp, clojure?
+* support for other languages: java, go, lisp, ruby, clojure?
 * test process inspector and kill faulty processes (taking too long, using too much memory)
 * create simple page to serve an editor and submit solutions to it

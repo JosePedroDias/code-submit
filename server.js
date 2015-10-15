@@ -25,7 +25,6 @@ http.createServer(function(req, res) {
     }
     
     let o = url.parse(u, true);
-    //let p = o.pathname;
     let q = o.query;
     
     var code = '';
@@ -33,9 +32,8 @@ http.createServer(function(req, res) {
         code += data;
     });
     
-    
-    
-    
+
+
     req.on('end', function() {
         code = code.trim();
         
@@ -45,18 +43,16 @@ http.createServer(function(req, res) {
     
         if (
             (code.length === 0) ||
-            !('exercise' in q) ||
             !('runtime' in q) ||
             !('args' in q) ||
             !('expectedResult' in q)
         ) {
-        res.end( '"Expected POST with code in the body and query string arguments exercise, runtime, args and expectedResults"' )
+        res.end( '"Expected POST with code in the body and query string arguments runtime, args and expectedResults"' )
             return;
         }
     
         cs.run({
             code           : code,
-            exercise       : q.exercise,
             runtime        : q.runtime,
             args           : q.args,
             expectedResult : q.expectedResult,

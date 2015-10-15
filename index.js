@@ -22,24 +22,6 @@ module.exports = function(cfg) {
         fs.writeFileSync(fn, contents);
     };
 
-    let processIO = function(fn) {
-        let s = rf(fn);
-        let o, result = [];
-        s.split('\n').forEach(function(line, i) {
-            var iMod3 = i % 3;
-            if (iMod3 === 0) {
-                o = [line, undefined];
-            }
-            else {
-                o[iMod3] = line;
-                if (iMod3 === 2) {
-                    result.push(o);
-                }
-            }
-        });
-        return result;
-    };
-
 
 
     let run = function(opts) {
@@ -121,8 +103,6 @@ module.exports = function(cfg) {
     
     
     return {
-        processIO : processIO,
-        rf        : rf,
-        run       : run
+        run : run
     };
 };

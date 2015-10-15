@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+
+        <title>code-submit basic test</title>
+
+        <style type="text/css">
+            body {
+                font-family: sans-serif;
+
+            }
+
+            select {
+                width: 60%;
+                background-color: #FFF;
+            }
+
+            label {
+                font-weight: bold;
+                display: inline-block;
+                vertical-align: top;
+                width: 8em;
+            }
+
+            #problem {
+                font-size: 0.8em;
+            }
+
+            #code {
+                height: 400px;
+                overflow: auto;
+            }
+
+            #code, #args, #expected-result, #feedback {
+                font-family: monospace;
+                font-size: 12px;
+                width: 60%;
+            }
+
+            #feedback.error {
+                color: red;
+            }
+
+            .hidden {
+                display: none;
+            }
+        </style>
+
+        <script type="text/javascript" src="http://rawgit.com/jakiestfu/Behave.js/master/behave.js"></script>
+        <script type="text/javascript" src="http://spec.commonmark.org/dingus/commonmark.js"></script>
+    </head>
+
+    <body>
+        <div>
+            <button onclick="document.querySelector('#problem').classList.toggle('hidden')">toggle problem text</button>
+            <div id="problem" class="hidden"></div>
+        </div>
+
+        <div id="interface">
+            <label for="runtime">runtime:</label>
+            <select id="runtime">
+                <option value="js">javascript</option>
+                <option value="py">python</option>
+            </select><br/>
+
+            <label for="code">code:</label>
+            <textarea id="code"></textarea><br/>
+
+            <label for="args">arguments:</label>
+            <input id="args" type="text" value=""><br/>
+
+            <label for="expected-result">expected result:</label>
+            <input id="expected-result" type="text" value=""><br/>
+
+            <button id="run">run</button>
+
+            <code><pre id="feedback"> </pre></code>
+        </div>
+
+        <script>
+            var ajax = function(o) {
+                var xhr = new XMLHttpRequest();
+                xhr.open(o.verb || 'GET', o.uri, true);
+                var cbInner = function() {
+                    if (xhr.readyState === 4 && xhr.status > 199 && xhr.status < 300) {
+                        return o.cb(null, JSON.parse(xhr.response));
+                    }
+                    o.cb('error requesting ' + o.uri);
+                };
+                xhr.onload  = cbInner;
+                xhr.onerror = cbInner;
+                xhr.send(o.payload || null);
+            };
+
+            var QS = function(sel) { return document.querySelector(sel); };
+
+            var problemEl = QS('#problem');
+            var runtimeEl = QS('#runtime');
+            var codeEl = QS('#code');
+            var argsEl = QS('#args');
+            var expectedResultEl = QS('#expected-result');
+            var runEl = QS('#run');
+            var feedbackEl = QS('#feedback');
+
+            var lockUI = function(st) {
+                runtimeEl.disabled = st;
+                codeEl.disabled = st;
+                argsEl.disabled = st;
+                expectedResultEl.disabled = st;
+                runEl.disabled = st;
+            };
+
+            var updateFeedback = function(content, isError) {
+                feedbackEl.firstChild.nodeValue = content;
+                feedbackEl.className = (isError ? 'error' : '');
+            };
+
+            runEl.addEventListener('click', function() {
+                lockUI(true);
+                var runtime = runtimeEl.value;
+                var code = codeEl.value;
+                var args = argsEl.value;
+                var expectedResult = expectedResultEl.value;
+                ajax({
+                    uri : ['//', location.hostname, ':6662',
+                            '?runtime=',        encodeURIComponent(runtime),
+                            '&args=',           encodeURIComponent(args),
+                            '&expectedResult=', encodeURIComponent(expectedResult),
+                        ].join(''),
+                    verb: 'POST',
+                    payload: code,
+                    cb: function(err, o) {
+                        if (err) { return window.alert(err); }
+                        updateFeedback(o.err || o.out, !!o.err);
+                        lockUI(false);
+                    }
+                });
+                updateFeedback('running...');
+            });
+
+            new Behave({
+                textarea: codeEl
+            });
+
+            var renderer = window.commonmark.HtmlRenderer();
+            var parser = window.commonmark.Parser();
+
+            if (location.hash) {
+                var problemName = location.hash.substring(1);
+                document.title = problemName;
+                ajax({
+                    uri: '/' + problemName,
+                    cb: function(err, o) {
+                        if (err) { return window.alert(err); }
+                        var results = o.expectedResults.split('\n');
+                        argsEl.value = results[1];
+                        expectedResultEl.value = results[2];
+                        problemEl.innerHTML = renderer.render( parser.parse(o.text) );
+                        problemEl.className = '';
+                    }
+                });
+            }
+            else {
+                problemEl.parentNode.className = 'hidden';
+            }
+        </script>
+    </body>
+</html>
