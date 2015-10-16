@@ -3,6 +3,21 @@
 After experimenting [codility.com](https://codility.com/) I thought it would be interesting to replicate the idea.
 
 
+## disclaimer
+
+This is not a commercial-grade solution.  
+You should not expose the `server.js` endpoint publicly, but
+invoke it from your web server, protected with one or more of the above:
+* authentication and logging of requests
+* throttling
+
+It should be easy to customize the existing runtimes and add new ones.
+Be free to add steps to the cmd file - each process is run after the previous one
+given it didn't exceed quota or print to STDERR.  
+Adding a code analysis tool is a matter of prefixing the compile or run line with the linter...
+
+
+
 ## features
 
 * can be invoked locally (check `demo.js`)
