@@ -4,20 +4,26 @@
 
 const PORT = 6662;
 
+const fs   = require('fs');
 const http = require('http');
 const url  = require('url');
 
-let cs = require('./index')({
+try {
+    fs.mkdirsync('/tmp/code-submit/');
+} catch (ex) {}
+
+const cs = require('./index')({
     tmpDir             : '/tmp/code-submit/',
-    maxMemory          : 10000,
-    maxExecutionTime   :  1000,
-    inspectionInterval :   100
+    maxMemory          : 1000000000, // 100 MB?
+    maxExecutionTime   :       1000, // 1 s
+    maxDuration        :      10000, // 10 s cpu
+    inspectionInterval :        250  // 4 fps
 });
 
 
 
 http.createServer(function(req, res) {
-    let u = req.url;
+    const u = req.url;
 
     if (u === '/favicon.ico') {
         res.writeHead(404);
@@ -56,10 +62,11 @@ http.createServer(function(req, res) {
             runtime        : q.runtime,
             args           : q.args,
             expectedResult : q.expectedResult,
-            onCompletion: function(err, out) {
+            onCompletion: function(err, out, stats) {
                 var o = {
-                    err : err,
-                    out : out
+                    err   : err,
+                    out   : out,
+                    stats : stats
                 };
                 
                 res.end( JSON.stringify(o) );

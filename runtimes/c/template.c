@@ -7,7 +7,7 @@ int expected = {{OUTPUT}};
 char* expectedS = "{{OUTPUT}}";
 
 int main() {
-    auto result = solution({{INPUT}});
+    int result = solution({{INPUT}});
 
     if (result != expected) {
         fprintf(stderr, "solution(%s) => %d     Expected: %s\n", inputS, result, expectedS);

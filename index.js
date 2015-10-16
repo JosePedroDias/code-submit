@@ -6,7 +6,7 @@ module.exports = function(cfg) {
 
     let fs = require('fs');
     let cp = require('child_process');
-    //let insp = require('proc-process-inspector'); // TODO reenable once in use
+    let insp = require('proc-process-inspector');
 
 
 
@@ -20,6 +20,92 @@ module.exports = function(cfg) {
 
     let wf = function(fn, contents) {
         fs.writeFileSync(fn, contents);
+    };
+
+    let handleSpawnArgs = function(cmd) {
+        let args = cmd.split(' ');
+        let exe = args.shift();
+        return {
+            exe  : exe,
+            args : args
+        };
+    };
+
+    let noop = function() {};
+
+
+    let runProcess = function(cmd, out, err, cb) {
+        //console.log('\n', cmd);
+
+        let sa = handleSpawnArgs(cmd);
+        let proc = cp.spawn(sa.exe, sa.args, {});
+        let stats = {
+            cpu: [],
+            mem: []
+        };
+
+        let t0 = new Date().valueOf();
+
+        let kill = function(why) {
+            //console.log('killing him!');
+            onDone(why);
+            onDone = noop;
+            proc.kill();
+        };
+
+        let onInsp = function() {
+            let t = new Date().valueOf();
+            let dt = t - t0;
+
+            insp.getMemory(proc.pid, function(err, out) {
+                let v = out.vmData;
+                if (v === undefined) { return; }
+                stats.mem.push({t:dt, v:v});
+                if (v > cfg.maxMemory) {
+                    kill('mem: process allocated more memory than ' + cfg.maxMemory);
+                }
+            });
+
+            insp.getCPU(proc.pid, function(err, out) {
+                let v = out.sumExecRuntime;
+                if (v === undefined) { return; }
+                stats.cpu.push({t:dt, v:v});
+                if (v > cfg.maxExecutionTime) {
+                    kill('cpu: process used more than ' + cfg.maxExecutionTime + ' of CPU execution time');
+                }
+            });
+
+            console.log('pid:%s, duration:%d ms', proc.pid, dt);
+
+            if (dt > cfg.maxDuration) {
+                kill('timeout: process took more than '  + cfg.maxDuration + ' ms');
+            }
+        };
+        onInsp();
+
+        let inspTimer = setInterval(onInsp, cfg.inspectionInterval);
+
+        let onDone = function(err2) {
+            clearInterval(inspTimer);
+
+            out = out.join('').trim();
+            err = err.join('').trim();
+
+            cb(err2 || err, out, stats);
+        };
+
+        proc.stdout.on('data', function(data) {
+            out.push( data.toString() );
+        });
+        proc.stderr.on('data', function(data) {
+            err.push( data.toString() );
+        });
+        proc.on('error', function(err) {
+            onDone(err);
+        });
+        proc.on('close', function(/*code*/) {
+            onDone();
+        });
     };
 
 
@@ -42,69 +128,24 @@ module.exports = function(cfg) {
         let exeFile = [cfg.tmpDir, baseFN].join('');
         wf(srcFile, codeToRun);
         
-        let cmd = cmdTpl
+        let cmds = cmdTpl
         .replace('{{SRC_FILE}}', srcFile)
         .replace('{{EXE_FILE}}', exeFile)
-        .replace('{{EXE_FILE}}', exeFile);
+        .replace('{{EXE_FILE}}', exeFile).split('\n');
         
         let out = [];
         let err = [];
 
-        let proc = cp.exec(cmd);
-        let t0 = new Date().valueOf();
-
-        let kill = function() { // TODO FIX
-            //console.log('killing him!');
-            //proc.kill('SIGHUP'); // SIGHUP, SIGKILL...
-            //onDone('timeout');
-        };
-        
-        let onInsp = function() {
-            /*insp.getMemory(proc.pid, function(err, out) {
-                console.log(err, out);
-            });
-
-            insp.getCPU(proc.pid, function(err, out) {
-                console.log(err, out);
-            });*/
-
-            let t = new Date().valueOf();
-            let dt = t - t0;
-            console.log('pid:%s, duration:%d ms', proc.pid, dt);
-
-            if (dt > cfg.maxDuration) {
-                kill();
+        let delegateOrReturn = function delegateOrReturn(err_, out_, stats) {
+            if (cmds.length > 0) {
+                runProcess(cmds.shift(), out, err, delegateOrReturn);
+            }
+            else {
+                opts.onCompletion(err_, out_, stats);
             }
         };
-        onInsp();
 
-        let inspTimer = setInterval(onInsp, cfg.inspectionInterval);
-
-        let onDone = function(err2) {
-            clearInterval(inspTimer);
-            
-            out = out.join('').trim();
-            err = err.join('').trim();
-            
-            opts.onCompletion(err2 || err, out);
-        };
-        
-        
-        
-        //console.log('\nPID: ' + proc.pid);
-        
-        proc.stdout.on('data', function(data) {
-            out.push(data.toString());
-        });
-        proc.stderr.on('data', function(data) {
-            err.push(data.toString());
-        });
-        proc.on('error', function(err) {
-            onDone(err);
-        });
-        proc.on('close', function(code) {
-            onDone();
-        });
+        runProcess(cmds.shift(), out, err, delegateOrReturn);
     };
     
     

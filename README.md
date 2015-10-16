@@ -32,6 +32,5 @@ the latter lists the command to compile and run the source file.
 
 ## TODO
 
+* protect file system and network packages?
 * support for other languages: java, go, lisp, ruby, clojure (I accept pull requests!)
-* kill faulty processes
-    * can't kill ongoing process (pid not found, did it fork already and how do I know who to kill then?)
