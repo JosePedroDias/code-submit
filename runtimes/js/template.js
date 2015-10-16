@@ -1,6 +1,6 @@
 var _assert_ = require('assert');
 
-module._load = function(request/*, parent, isMain*/) {
+require('module')._load = function(request/*, parent, isMain*/) {
     console.error('attempted to require module "' + request + '"!');
 };
 
