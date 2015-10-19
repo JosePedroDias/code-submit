@@ -91,9 +91,6 @@
         <div id="interface">
             <label for="runtime">runtime:</label>
             <select id="runtime">
-                <option value="js">JavaScript</option>
-                <option value="py">Python</option>
-                <option value="c">C</option>
             </select><br/>
 
             <label for="code">code:</label>
@@ -272,6 +269,30 @@
                 });
 
                 run( runQueue.shift() );
+            });
+
+
+
+            var runtimeLabels = {
+                js : 'JavaScript',
+                py : 'Python',
+                c  : 'C'
+            };
+
+            // populate server-supported runtimes
+            ajax({
+                uri : [SERVER, '/runtimes'].join(''),
+                cb: function(err, o) {
+                    if (err) {
+                        return window.alert(err);
+                    }
+                    o.forEach(function (rt) {
+                        var el = document.createElement('option');
+                        el.appendChild(document.createTextNode(runtimeLabels[rt]));
+                        el.value = rt;
+                        runtimeEl.appendChild(el);
+                    });
+                }
             });
 
 

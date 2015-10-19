@@ -12,6 +12,10 @@ try {
     fs.mkdirsync('/tmp/code-submit/');
 } catch (ex) {}
 
+const runtimes = fs.readdirSync('runtimes');
+
+
+
 const cs = require('./index')({
     tmpDir             : '/tmp/code-submit/',
     maxMemory          : 1000000000, // 100 MB?
@@ -46,6 +50,11 @@ http.createServer(function(req, res) {
         res.setHeader('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Content-Type', 'application/json');
+
+        if (req.url === '/runtimes') {
+            res.end( JSON.stringify(runtimes) );
+            return;
+        }
     
         if (
             (code.length === 0) ||

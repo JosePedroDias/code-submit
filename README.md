@@ -55,5 +55,4 @@ Code submit does not limit how the runtimes work: in js we're disabling node mod
 
 ## TODO
 
-* a way to see and possibly invoke several pairs of args/expected result in the webpage.
-* support for other languages: java, go, lisp, ruby, clojure (I accept pull requests!)
+* support for other languages: java, go, c#, php, lisp, ruby, clojure, haskell (sky is the limit - I accept pull requests!)
