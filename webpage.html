@@ -25,6 +25,12 @@
                 width: 8em;
             }
 
+            ul {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+            }
+
             #problem {
                 font-size: 0.8em;
             }
@@ -46,6 +52,21 @@
 
             .hidden {
                 display: none;
+            }
+
+            .block {
+                width: 60%;
+                border: 1px solid #AAA;
+                padding: 6px;
+                margin: 4px 0 4px 0;
+            }
+
+            #tests .error {
+                color: red;
+            }
+
+            #tests .ok {
+                color: green;
             }
         </style>
 
@@ -76,15 +97,26 @@
             </select><br/>
 
             <label for="code">code:</label>
-            <textarea id="code"></textarea><br/>
+            <textarea id="code" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea><br/>
 
-            <label for="args">arguments:</label>
-            <input id="args" type="text" value=""><br/>
+            <div class="block">
+                <label for="args">arguments:</label>
+                <input id="args" type="text" value=""><br/>
 
-            <label for="expected-result">expected result:</label>
-            <input id="expected-result" type="text" value=""><br/>
+                <label for="expected-result">expected result:</label>
+                <input id="expected-result" type="text" value=""><br/>
 
-            <button id="run">run</button>
+                <button id="run">run</button>
+            </div>
+
+            <div class="block">
+                <label for="tests">tests:</label>
+                <ul id="tests"></ul>
+
+                <button id="run-all">run all</button>
+            </div>
+
+
 
             <code><pre id="feedback"> </pre></code>
         </div>
@@ -109,19 +141,35 @@
                 xhr.send(o.payload || null);
             };
 
-            var QS = function(sel) { return document.querySelector(sel); };
+            var QS = function(sel) {
+                return document.querySelector(sel);
+            };
+
+            var listToArr = function(lst) {
+                var l = lst.length;
+                var arr = new Array(l); // optimizable *list-to-array
+                for (var i = 0; i < l; ++i) {
+                    arr[i] = lst[i];
+                }
+                return arr;
+            };
 
 
 
             var codes = {}; // to backup values locally on runtime change
+            var tests = [];
+            var runQueue = [];
 
             var problemEl = QS('#problem');
             var runtimeEl = QS('#runtime');
             var codeEl = QS('#code');
+
             var argsEl = QS('#args');
             var expectedResultEl = QS('#expected-result');
-            var runEl = QS('#run');
             var feedbackEl = QS('#feedback');
+            var runEl = QS('#run');
+            var testsEl = QS('#tests');
+            var runAllEl = QS('#run-all');
 
 
 
@@ -138,6 +186,7 @@
                 argsEl.disabled = st;
                 expectedResultEl.disabled = st;
                 runEl.disabled = st;
+                runAllEl.disabled = st;
             };
 
             var updateFeedback = function(content, isError) {
@@ -145,29 +194,84 @@
                 feedbackEl.className = (isError ? 'error' : '');
             };
 
+            var resetTestColors = function() {
+                var liEls = listToArr( testsEl.querySelectorAll('li') );
+                liEls.forEach(function(el) {
+                    el.className = '';
+                });
+            };
 
-
-            runEl.addEventListener('click', function() { // request the code to be run remotely
+            var run = function(o) {
+                var msg = 'running ' + (o.title || 'custom test') + '...';
+                //console.log(msg, o.args, o.expectedResult);
                 lockUI(true);
-                var runtime = runtimeEl.value;
-                var code = codeEl.value;
-                var args = argsEl.value;
-                var expectedResult = expectedResultEl.value;
                 ajax({
                     uri : [SERVER,
-                            '?runtime=',        encodeURIComponent(runtime),
-                            '&args=',           encodeURIComponent(args),
-                            '&expectedResult=', encodeURIComponent(expectedResult),
-                        ].join(''),
+                        '?runtime=',        encodeURIComponent(o.runtime),
+                        '&args=',           encodeURIComponent(o.args),
+                        '&expectedResult=', encodeURIComponent(o.expectedResult)
+                    ].join(''),
                     verb: 'POST',
-                    payload: code,
-                    cb: function(err, o) {
+                    payload: o.code,
+                    cb: function(err, o2) {
                         lockUI(false);
                         if (err) { return window.alert(err); }
-                        updateFeedback(o.err || o.out, !!o.err);
+                        updateFeedback(o2.err || o2.out, !!o2.err);
+
+                        if (o.onRunComplete) {
+                            o.onRunComplete(o2.err, o2.out, o.el);
+                        }
                     }
                 });
-                updateFeedback('running...');
+                updateFeedback(msg);
+            };
+
+
+
+            var onRunComplete = function(err, o, el) {
+                if (el) {
+                    el.className = (err ? 'error' : 'ok');
+                }
+
+                if (runQueue.length === 0) { return; }
+
+                if (err) {
+                    runQueue = [];
+                }
+                else {
+                    run( runQueue.shift() );
+                }
+            };
+
+            runEl.addEventListener('click', function() {
+                resetTestColors();
+                run({
+                    runtime: runtimeEl.value,
+                    code: codeEl.value,
+                    args: argsEl.value,
+                    expectedResult: expectedResultEl.value
+                });
+            });
+
+            runAllEl.addEventListener('click', function() {
+                resetTestColors();
+                var runtime = runtimeEl.value;
+                var code    = codeEl.value;
+                var liEls = listToArr( testsEl.querySelectorAll('li') );
+
+                runQueue = tests.map(function(test, i) {
+                    return {
+                        runtime: runtime,
+                        code: code,
+                        args: test.args,
+                        expectedResult: test.expectedResult,
+                        title: test.title,
+                        el: liEls[i],
+                        onRunComplete: onRunComplete
+                    }
+                });
+
+                run( runQueue.shift() );
             });
 
 
@@ -175,8 +279,6 @@
             runtimeEl.addEventListener('focus', function() { // backup code editor content
                 codes[runtimeEl.value] = codeEl.value;
             });
-
-
 
             runtimeEl.addEventListener('change', function() { // restore code editor content
                 codeEl.value = codes[ runtimeEl.value ] || '';
@@ -188,21 +290,46 @@
                 var hash = location.hash.substring(1);
 
                 window.onGist = function(o) {
+                    // fetch relevant data from gist
                     var files = o.data.files;
-                    var text = files['text.md'].content;
-                    var results = files['expectedResults'].content.split('\n');
+                    var textMd = files['text.md'].content;
+                    var expectedResults = files['expectedResults'].content;
 
+                    // get skeletons
                     for (var k in files) {
                         if (k.indexOf('skeleton.') !== 0) { continue; }
                         codes[ k.split('.')[1] ] = files[k].content;
                     }
                     var code = codes[ runtimeEl.value ];
 
+                    // parse expectedResults
+                    var test;
+                    expectedResults.trim().split('\n').forEach(function(line, i) {
+                        if (i % 3 === 0) {
+                            test = {title:line};
+                            tests.push(test);
+                        }
+                        else {
+                            test[(i % 3) === 1 ? 'args' : 'expectedResult'] = line;
+                        }
+                    });
+                    //console.log(tests);
+
                     codeEl.value = code;
-                    argsEl.value = results[1];
-                    expectedResultEl.value = results[2];
-                    problemEl.innerHTML = renderer.render( parser.parse(text) );
+                    argsEl.value = tests[0].args;
+                    expectedResultEl.value = tests[0].expectedResult;
+                    problemEl.innerHTML = renderer.render( parser.parse(textMd) );
                     problemEl.className = '';
+
+                    testsEl.innerHTML = '';
+                    tests.forEach(function(test, i) {
+                        var aEl = document.createElement('a');
+                        aEl.appendChild( document.createTextNode(test.title) );
+                        var liEl = document.createElement('li');
+                        liEl.setAttribute('data-index', i);
+                        liEl.appendChild(aEl);
+                        testsEl.appendChild(liEl);
+                    });
                 };
 
                 var scriptEl = document.createElement('script'); // request gist via JSONP
